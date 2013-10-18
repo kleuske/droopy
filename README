@@ -1,0 +1,20 @@
+Droopy is a prolog bot for MediaWiki projects. It is still under development
+and at the current stage nothing very useful should be expected. This will,
+hopefuilly, change in the future.
+
+Droopy is primarily intended to scrutinize wikipedia and create reports, rather
+than doing routine maintenance work or adding articles. Possible future uses
+include:
+
+* Checking sitematrices over various projects for consistency
+* Checking category hierarchies for consistency
+* Checking for articles that are largely written by SPA's
+* Checking for (link)spam
+
+== Platform ==
+Droopy was written and tested using SWI-Prolog (version 5.10.1) and should run
+on all platforms supporting it. It *may* run using other compilers/interpreters
+but, to date, i haven't actually tried it. If you do, good luck and let me know
+wether or not you are succesful.
+
+
