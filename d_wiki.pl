@@ -79,7 +79,6 @@ wiki_more(Prj, Query, more(Mark, FirstReply), [Reply]) :-
   wiki_apply(Prj, Query, Parts, [Mark]),
   wiki_once(Parts, NextReply),
   wiki_more(Prj, Query, NextReply, LastReply),
-  writef("Merge...\n"),
   wiki_merge(FirstReply, LastReply, Reply).
 wiki_more(_, _, Reply, Reply).
 
@@ -110,20 +109,16 @@ wiki_merge_one(A, B, Result) :-
   !,
   append(A, B, Result).
 wiki_merge_one(none, none, _) :-
-  !,
-  writef("Merge none\n").
+  !.
 wiki_merge_one(A, none, A) :-
   atom(A),
-  !,
-  writef("Merge none %w\n", [A]).
+  !.
 wiki_merge_one(none, A, A) :-
   atom(A),
-  !,
-  writef("Merge none %w\n", [A]).
+  !.
 wiki_merge_one(A, A, A) :-
   atom(A),
-  !,
-  writef("Merge unify %w\n", [A]).
+  !.
 
 /*
 raw(Site, Title, Page) :-

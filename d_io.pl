@@ -50,7 +50,7 @@ get_xml(Url, []) :-
  * ------------------------------------------------------------------------- */
 
 get_raw(Url, Xml) :-
-  http_open(Norm, Stream, []),
+  http_open(Url, Stream, []),
   !,
   read_stream_to_codes(Stream, Xml, [dialect(xml), space(remove)]),
   close(Stream).

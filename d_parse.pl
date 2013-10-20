@@ -237,23 +237,27 @@ pages([], Rest, Rest).
  * ------------------------------------------------------------------------- */
 
 page(page(ID,
-                NS,
-                Title,
-                Touched,
-                LastRev,
-                Counter,
-                Length,
-                Info)) -->
+          NS,
+          Title,
+          Model,
+          Touched,
+          LastRev,
+          Counter,
+          Length,
+          Info
+         )
+    ) -->
   [ element( 'page', Attr, Content ) ],
   {
     !,
-    d_xml:attr(Attr, 'pageid',    ID),
-    d_xml:attr(Attr, 'ns',        NS),
-    d_xml:attr(Attr, 'title',     Title),
-    d_xml:attr(Attr, 'touched',   Touched),
-    d_xml:attr(Attr, 'lastrevid', LastRev),
-    d_xml:attr(Attr, 'counter',   Counter),
-    d_xml:attr(Attr, 'length',    Length),
+    d_xml:attr(Attr, 'pageid',       ID),
+    d_xml:attr(Attr, 'ns',           NS),
+    d_xml:attr(Attr, 'contentmodel', Model),
+    d_xml:attr(Attr, 'title',        Title),
+    d_xml:attr(Attr, 'touched',      Touched),
+    d_xml:attr(Attr, 'lastrevid',    LastRev),
+    d_xml:attr(Attr, 'counter',      Counter),
+    d_xml:attr(Attr, 'length',       Length),
 
     page_content(Info, Content, [])
   }.
@@ -306,7 +310,7 @@ page_cat(category(NS, Title)) -->
   }.
 
 /* ------------------------------------------------------------------------- *
- * page_links(-Links)                                                  *
+ * page_links(-Links)                                                        *
  *                                                                           *
  * Handles links for pages.                                                  *
  * ------------------------------------------------------------------------- */

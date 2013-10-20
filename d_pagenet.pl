@@ -34,7 +34,7 @@ start(Prj, Title, Depth) :-
   d_job:queue(Prj, page_links(Title), d_pagenet, [ Depth ]).
 
 once(Prj, Count) -->
-  [ page(_, _, Title, _, _, _, _, Links) ],
+  [ page(_, _, Title, _, _, _, _, _, Links) ],
   {
     !,
     writef('page: %w\n', [Title]),

@@ -18,7 +18,8 @@
  *  You should have received a copy of the GNU General Public License        *
  *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.          *
  * ------------------------------------------------------------------------- */
-
+:- module(droopy, [ droopy/0,
+                    test/1    ]).
 :- use_module(d_io).
 :- use_module(d_job).
 :- use_module(d_matrix).
@@ -33,17 +34,17 @@
 
 init_sites(URL) :-
   writef('Initializing site matrix from %w\n', [URL]),
-  d_xml:get_xml(URL, Xml),
+  d_io:get_xml(URL, Xml),
   d_parse:api(Xml, SiteMatrix),
   d_matrix:insert(special(commons), SiteMatrix).
 
 droopy :-
-  assertz(links:ln(none, none)),
-  assertz(jobs:job(none, none, [])),
   init_sites('http://commons.wikimedia.org/w/api.php?format=xml&action=sitematrix').
 
 test(N) :-
-  d_pagenet:start(prj(nl, wiki), 'Aardwerk', N).
+  droopy,
+  d_pagenet:start(prj(nl, wiki), 'Aardwerk', N),
+  d_job:loop.
 
 /* ------------------------------------------------------------------------- *
  * END OF FILE                                                               *
