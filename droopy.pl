@@ -19,7 +19,8 @@
  *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.          *
  * ------------------------------------------------------------------------- */
 :- module(droopy, [ droopy/0,
-                    test/1    ]).
+                    test/1,
+                    test/2    ]).
 :- use_module(d_io).
 :- use_module(d_job).
 :- use_module(d_matrix).
@@ -32,6 +33,10 @@
  * can be calculated.
  */
 
+init_sites(_) :-
+  d_matrix:url(special(commons), _),
+  !,
+  writef("already initialized matrix\n").
 init_sites(URL) :-
   writef('Initializing site matrix from %w\n', [URL]),
   d_io:get_xml(URL, Xml),
@@ -44,6 +49,11 @@ droopy :-
 test(N) :-
   droopy,
   d_pagenet:start(prj(nl, wiki), 'Aardwerk', N),
+  d_job:loop.
+
+test(Title, N) :-
+  droopy,
+  d_pagenet:start(prj(nl, wiki), Title, N),
   d_job:loop.
 
 /* ------------------------------------------------------------------------- *

@@ -33,6 +33,8 @@
   wiki/3
 ]).
 
+:- use_module(d_page).
+
 /* ------------------------------------------------------------------------- *
  * URL's to access the MediaWiki API                                         *
  * ------------------------------------------------------------------------- */
@@ -62,16 +64,23 @@ user_contribs(User, Parts) :-
   query(Base),
   append(Base, [ucuser=User, list=usercontribs, uclimit=max], Parts).
 
+/* ------------------------------------------------------------------------- */
+
 wiki(Prj, Query, Reply) :-
   wiki_apply(Prj, Query, Parts, []),
+  !,
   wiki_once(Parts, FirstReply),
   wiki_more(Prj, Query, FirstReply, Reply).
+
+/* ------------------------------------------------------------------------- */
 
 wiki_once(Parts, Reply) :-
   parse_url(URL, Parts),
   !,
   d_io:get_xml(URL, XML),
   d_parse:api(XML, Reply).
+
+/* ------------------------------------------------------------------------- */
 
 wiki_more(Prj, Query, more(Mark, FirstReply), [Reply]) :-
   !,
@@ -82,11 +91,22 @@ wiki_more(Prj, Query, more(Mark, FirstReply), [Reply]) :-
   wiki_merge(FirstReply, LastReply, Reply).
 wiki_more(_, _, Reply, Reply).
 
+/* ------------------------------------------------------------------------- */
+
+wiki_apply(Prj, page(Title, Properties), Parts, Extras) :-
+  !,
+  d_matrix:api_url(Prj, API),
+  d_page:page_query(Title, Properties, SearchTermsRaw),
+  append(SearchTermsRaw, Extras, SearchTerms),
+  append(API, [search(SearchTerms)], Parts).
+/* deprecated */
 wiki_apply(Prj, Query, Parts, Extras) :-
   d_matrix:api_url(Prj, API),
   call(Query, SearchTermsRaw),
   append(SearchTermsRaw, Extras, SearchTerms),
   append(API, [search(SearchTerms)], Parts).
+
+/* ------------------------------------------------------------------------- */
 
 wiki_merge([ObjA|_], [ObjB|_], Result) :-
   ObjA =.. ListA,
@@ -97,11 +117,15 @@ wiki_merge([ObjA|_], [ObjB|_], Result) :-
 wiki_merge(A, B, _) :-
   writef("Weirdness...\n\n\n%w\n\n\n%w\n", [A, B]), !, fail.
 
+/* ------------------------------------------------------------------------- */
+
 wiki_merge_all([A|RestA], [B|RestB], [R|RestR]) :-
   wiki_merge_one(A, B, R),
   !,
   wiki_merge_all(RestA, RestB, RestR).
 wiki_merge_all([], [], []).
+
+/* ------------------------------------------------------------------------- */
 
 wiki_merge_one(A, B, Result) :-
   is_list(A),
@@ -117,8 +141,12 @@ wiki_merge_one(none, A, A) :-
   atom(A),
   !.
 wiki_merge_one(A, A, A) :-
-  atom(A),
   !.
+/*
+wiki_merge_one(A, B, _) :-
+  !, fail.
+*/
+/* ------------------------------------------------------------------------- */
 
 /*
 raw(Site, Title, Page) :-

@@ -29,6 +29,9 @@
                      special/1,
                      url/2]).
 
+:- dynamic(matrix:special/6).
+:- dynamic(matrix:prj/8).
+
 /* ------------------------------------------------------------------------- *
  * insert(+Source, +Matrix)                                                  *
  *                                                                           *
@@ -41,7 +44,7 @@ insert(Source, matrix(_, Specials, Languages)) :-
 
 insert_languages(Source, [language(LC, Name, Local, Projects)|Rest]) :-
   !,
-  assertz(sites:language(LC, Name, Local, Source)),
+  assertz(matrix:language(LC, Name, Local, Source)),
   insert_projects(Source, LC, Projects),
   insert_languages(Source, Rest).
 insert_languages(_, []).
@@ -50,7 +53,7 @@ insert_projects(Source, LC, [prj(Url, DBName, Code, Name, Closed, Private, Fishb
   !,
   parse_url(Url, UrlPartsRaw),
   delete(UrlPartsRaw, path(_), UrlParts),
-  assertz(sites:prj(LC, UrlParts, DBName, Code, Name, Closed, Private, Fishbowl)),
+  assertz(matrix:prj(LC, UrlParts, DBName, Code, Name, Closed, Private, Fishbowl)),
   insert_projects(Source, LC, Rest).
 insert_projects(_, _, []).
 
@@ -58,7 +61,7 @@ insert_specials(Source, [special(Url, DBName, Name, Closed, Private, Fishbowl)|R
   !,
   parse_url(Url, UrlPartsRaw),
   delete(UrlPartsRaw, path(_), UrlParts),
-  assertz(sites:special(UrlParts, DBName, Name, Closed, Private, Fishbowl)),
+  assertz(matrix:special(UrlParts, DBName, Name, Closed, Private, Fishbowl)),
   insert_specials(Source, Rest).
 insert_specials(_, []).
 
@@ -69,7 +72,7 @@ insert_specials(_, []).
  * ------------------------------------------------------------------------- */
 
 prj(LC, Code) :-
-  sites:prj(LC, _, _, Code, _, _, _, _).
+  matrix:prj(LC, _, _, Code, _, _, _, _).
 
 /* ------------------------------------------------------------------------- *
  * special(?Code)                                                           *
@@ -78,7 +81,7 @@ prj(LC, Code) :-
  * ------------------------------------------------------------------------- */
 
 special(Code) :-
-  sites:special(_, _, Code, _, _, _).
+  matrix:special(_, _, Code, _, _, _).
 
 /* ------------------------------------------------------------------------- *
  * url(?Project, ?Parts)                                                     *
@@ -87,9 +90,9 @@ special(Code) :-
  * ------------------------------------------------------------------------- */
 
 url(prj(LC, Code), Url) :-
-  sites:prj(LC, Url, _, Code, _, _, _, _).
+  matrix:prj(LC, Url, _, Code, _, _, _, _).
 url(special(Code), Url) :-
-  sites:special(Url, _, Code, _, _, _).
+  matrix:special(Url, _, Code, _, _, _).
 
 /* ------------------------------------------------------------------------- *
  * closed(?Project)                                                          *
@@ -98,9 +101,9 @@ url(special(Code), Url) :-
  * ------------------------------------------------------------------------- */
 
 closed(prj(LC, Code)) :-
-  sites:prj(LC, _, _, Code, _, true, _, _).
+  matrix:prj(LC, _, _, Code, _, true, _, _).
 closed(special(Code)) :-
-  sites:special(_, _, Code, true, _, _).
+  matrix:special(_, _, Code, true, _, _).
 
 /* ------------------------------------------------------------------------- *
  * fishbowl(?Project)                                                        *
@@ -109,9 +112,9 @@ closed(special(Code)) :-
  * ------------------------------------------------------------------------- */
 
 fishbowl(prj(LC, Code)) :-
-  sites:prj(LC, _, _, Code, _, _, _, true).
+  matrix:prj(LC, _, _, Code, _, _, _, true).
 fishbowl(special(Code)) :-
-  sites:special(_, _, Code, _, _, true).
+  matrix:special(_, _, Code, _, _, true).
 
 /* ------------------------------------------------------------------------- *
  * private(?Project)                                                         *
@@ -120,9 +123,9 @@ fishbowl(special(Code)) :-
  * ------------------------------------------------------------------------- */
 
 private(prj(LC, Code)) :-
-  sites:prj(LC, _, _, Code, _, _, true, _).
+  matrix:prj(LC, _, _, Code, _, _, true, _).
 private(special(Code)) :-
-  sites:special(_, _, Code, _, true, _).
+  matrix:special(_, _, Code, _, true, _).
 
 /* ------------------------------------------------------------------------- *
  * public(?Project)                                                          *
@@ -131,9 +134,9 @@ private(special(Code)) :-
  * ------------------------------------------------------------------------- */
 
 public(prj(LC, Code)) :-
-  sites:prj(LC, _, _, Code, _, false, false, false).
+  matrix:prj(LC, _, _, Code, _, false, false, false).
 public(special(Code)) :-
-  sites:special(_, _, Code, false, false, false).
+  matrix:special(_, _, Code, false, false, false).
 
 /* ------------------------------------------------------------------------- *
  * api_url(?Prj, ?URL)                                                       *

@@ -236,16 +236,13 @@ pages([], Rest, Rest).
  * Fetches page info                                                         *
  * ------------------------------------------------------------------------- */
 
-page(page(ID,
-          NS,
-          Title,
-          Model,
-          Touched,
-          LastRev,
-          Counter,
-          Length,
-          Info
-         )
+page(page(loc(ID, NS, Title),
+          info(LastRev,
+               Counter,
+               Model,
+               Touched,
+               Length),
+          Data)
     ) -->
   [ element( 'page', Attr, Content ) ],
   {
@@ -259,7 +256,7 @@ page(page(ID,
     d_xml:attr(Attr, 'counter',      Counter),
     d_xml:attr(Attr, 'length',       Length),
 
-    page_content(Info, Content, [])
+    page_content(Data, Content, [])
   }.
 
 /* ------------------------------------------------------------------------- *
@@ -268,26 +265,30 @@ page(page(ID,
  * Handles all info for pages.                                               *
  * ------------------------------------------------------------------------- */
 
-page_content(Categories) -->
+page_content([Head|Tail]) -->
+    page_content_one(Head),
+    !,
+    page_content(Tail).
+page_content([]) --> [].
+
+page_content_one(categories(Categories)) -->
   [ element( 'categories', _, Content) ],
   {
     !,
     page_cats(Categories, Content, [])
   }.
-page_content(Links) -->
+page_content_one(links(Links)) -->
   [ element( 'links', _, Content) ],
   {
     !,
     page_links(Links, Content, [])
   }.
-page_content(Revisions) -->
+page_content_one(revisions(Revisions)) -->
   [ element( 'revisions', _, Content) ],
   {
     !,
     page_revs(Revisions, Content, [])
   }.
-
-page_content([]) --> [].
 
 /* ------------------------------------------------------------------------- *
  * page_cats(-Categories)                                                    *
@@ -301,7 +302,7 @@ page_cats([Cat|Rest]) -->
   page_cats(Rest).
 page_cats([], Rest, Rest).
 
-page_cat(category(NS, Title)) -->
+page_cat(cat(NS, Title)) -->
   [ element('cl', Attr, []) ],
   {
     !,
@@ -321,7 +322,7 @@ page_links([Link|Rest]) -->
   page_links(Rest).
 page_links([], Rest, Rest).
 
-page_link(pagelink(NS, Title)) -->
+page_link(pl(NS, Title)) -->
   [ element('pl', Attr, _) ],
   {
     !,
@@ -341,7 +342,7 @@ page_revs([Rev|Rest]) -->
   page_revs(Rest).
 page_revs([], Rest, Rest).
 
-page_rev(revision(ID, Parent, User, Time, Comment)) -->
+page_rev(rv(ID, Parent, User, Time, Comment)) -->
   [ element('rev', Attr, []) ],
   {
     !,

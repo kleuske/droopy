@@ -20,34 +20,60 @@
  * ------------------------------------------------------------------------- */
 
 :- module(d_pagenet, [clear/0,
-                      once/4,
+                      query/2,
+                      handle/4,
                       start/3]).
 :- use_module(d_job).
-:-dynamic(links:ln/2).
-:-dynamic(pages:info/8).
+:- dynamic(links:pl/2).
+:- dynamic(pages:info/5).
+
+/* ------------------------------------------------------------------------- */
 
 clear :-
-  abolish(links:ln/2),
-  abolish(pages:info/8).
+  abolish(links:pl/2),
+  abolish(pages:info/5).
+
+/* ------------------------------------------------------------------------- */
+
+query(Title, page(Title, [info, links(0)])).
+
+/* ------------------------------------------------------------------------- */
 
 start(Prj, Title, Depth) :-
-  d_job:queue(Prj, page_links(Title), d_pagenet, [ Depth ]).
+  query(Title, Query),
+  d_job:queue(Prj, Query, d_pagenet, [ Depth ]).
 
-once(Prj, Count) -->
-  [ page(_, _, Title, _, _, _, _, _, Links) ],
+/* ------------------------------------------------------------------------- */
+
+handle(Prj, Count) -->
+  [ page(loc(none, NS, Title), _, []) ],
   {
+    !,
+    writef('redl: %w\n', [Title]),
+    d_page:insert(loc(Prj, none, NS, Title), none)
+  },
+  handle(Prj, Count).
+
+handle(Prj, Count) -->
+  [ page(loc(ID, NS, Title), Info, PropList) ],
+  {
+    member(links(Links), PropList),
     !,
     writef('page: %w\n', [Title]),
+    d_page:insert(loc(Prj, ID, NS, Title), Info),
     pg_links(Count, Prj, Title, Links, _)
   },
-  once(Prj, Count).
-once(_, _, Rest, Rest).
+  handle(Prj, Count).
+
+handle(_, _) --> [].
+
+/* ------------------------------------------------------------------------- */
 
 pg_links(0, _, Title) -->
-  [ pagelink(_, LinkTitle) ],
+  [ pl(_, LinkTitle) ],
   {
     !,
-    /* writef('leaf : %w\n', [LinkTitle]), */
+    /*writef('leaf : %w\n', [LinkTitle]),*/
     pg_store(Title, LinkTitle)
   },
   pg_links(0, _, Title).
@@ -62,39 +88,35 @@ pg_links(Count, Prj, Title) -->
   pg_links(Count, Title).
 */
 pg_links(Count, Prj, Title) -->
-  [ pagelink(_, LinkTitle) ],
+  [ pl(_, LinkTitle) ],
   {
     !,
-/*    writef('branch : %w\n', [LinkTitle]), */
+    /*writef('branch : %w\n', [LinkTitle]),*/
     pg_store(Title, LinkTitle),
     pg_seed(Prj, LinkTitle, Count)
   },
   pg_links(Count, Prj, Title).
 pg_links(_, _, _, Rest, Rest).
 
+/* ------------------------------------------------------------------------- */
+
 pg_store(Title, LinkTitle) :-
-  assertz(links:ln(Title, LinkTitle)),
-  !.
+  \+ links:pl(Title, LinkTitle),
+  !,
+  assertz(links:pl(Title, LinkTitle)).
 pg_store(_, _).
 
+/* ------------------------------------------------------------------------- */
+
 pg_seed(Prj, Title, Count) :-
-  \+ links:ln(Title, _),
+  \+ d_page:info(title(Prj, '0', Title), _),
   !,
   NewCnt is Count - 1,
   d_job:queue(Prj,
-              page_links(Title, 0),
-              d_pagenet, [NewCnt]).
+              page(Title, [ info, links(0)]),
+              d_pagenet,
+              [ NewCnt ]).
 pg_seed(_, _, _).
-/*
-pg_backlink(Title, LinkTitle) :-
-  links:ln(LinkTitle, Title),
-  !.
-pg_backlink(Title, LinkTitle) :-
-  links:ln(LinkTitle, SomeTitle),
-  SomeTitle \= none,
-  !,
-  pg_backlink(Title, SomeTitle).
-*/
 
 /* ------------------------------------------------------------------------- *
  * END OF FILE                                                               *

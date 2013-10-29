@@ -1,5 +1,27 @@
+/* ------------------------------------------------------------------------- *
+ * FILE:  d_page.pl                                                          *
+ * BRIEF: page query generator                                               *
+ *                                                                           *
+ * ------------------------------------------------------------------------- *
+ *  This file is part of Droopy.                                             *
+ *                                                                           *
+ *  Foobar is free software: you can redistribute it and/or modify           *
+ *  it under the terms of the GNU General Public License as published by     *
+ *  the Free Software Foundation, either version 3 of the License, or        *
+ *  (at your option) any later version.                                      *
+ *                                                                           *
+ *  Foobar is distributed in the hope that it will be useful,                *
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+ *  GNU General Public License for more details.                             *
+ *                                                                           *
+ *  You should have received a copy of the GNU General Public License        *
+ *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.          *
+ * ------------------------------------------------------------------------- */
+
 :- module(d_page,
-          [ page_query/4 ]).
+          [ page_query/3,
+            info/2 ]).
 
 /* data:page(ID,       
              Namespace,         
@@ -13,51 +35,49 @@
            )
 */
 
-:-dynamic(data:page/9).
+:-dynamic(pages:page/2).
 
 /* ------------------------------------------------------------------------- */
 
-page_query(Prj, Title, Options, Query) :-
-  d_matrix:api_url(Prj, Site),
+page_query(Title, Options, [ format = xml,
+                             action = query,
+                             titles = Title,
+                             prop   = PropList
+                           | Args ]) :-
   query_props(Options, Props, Args),
-  query_proplist(Props, PropList),
-  append(Site, [ search([format = xml,
-                         action = query,
-                         titles = Title,
-                         prop   = PropList|Args])], Query).
+  query_proplist(Props, PropList).
 
 /* ------------------------------------------------------------------------- */
-query_base([]).
 
 query_props([Option|Rest], [Prop|RestProp], Args) :-
   !,
-  query_prop(Option, Prop, HeadArgs),
+  page_prop(Option, Prop, HeadArgs),
   query_props(Rest, RestProp, TailArgs),
   append(HeadArgs, TailArgs, Args).
-query_props([], [], []).  
+query_props([], [], []).
 
 /* ------------------------------------------------------------------------- */
 
-query_prop(info,                  info,       [ ]).
-query_prop(categories,            categories, [ cllimit=max ]).
-query_prop(categories(hidden),    categories, [ cllimit=max,
+page_prop(info,                  info,       [ ]).
+page_prop(categories,            categories, [ cllimit=max ]).
+page_prop(categories(hidden),    categories, [ cllimit=max,
                                                 clshow=hidden]).
-query_prop(categories(nothidden), categories, [ cllimit=max,
+page_prop(categories(nothidden), categories, [ cllimit=max,
                                                 clshow='!hidden' ]).
-query_prop(links(all),            links,      [ pllimit=max]).
-query_prop(links(Namespaces),     links,      [ plnamespace=Props,
+page_prop(links,                 links,      [ pllimit=max]).
+page_prop(links(Namespaces),     links,      [ plnamespace=Props,
                                                 pllimit=max]) :-
   query_proplist(Namespaces, Props).
-query_prop(langlinks,             langlinks,  [ lllimit=max ]).
-query_prop(langlinks,             langlinks,  [ lllimit=max ]).
-query_prop(revisions,             revisions,  [ rvlimit=max ]).
-query_prop(revisions(terse),      revisions,  [ rvlimit=max,
+page_prop(langlinks,             langlinks,  [ lllimit=max ]).
+page_prop(langlinks,             langlinks,  [ lllimit=max ]).
+page_prop(revisions,             revisions,  [ rvlimit=max ]).
+page_prop(revisions(terse),      revisions,  [ rvlimit=max,
                                                 rvprop='ids|user|timestamp' ]).
-query_prop(revisions(PropList),   revisions,  [ rvlimit=max,
+page_prop(revisions(PropList),   revisions,  [ rvlimit=max,
                                                 rvprop=Props]) :-
   query_proplist(PropList, Props).
-query_prop(templates,             templates,  [ tllimit=max ]).
-query_prop(templates(Namespaces), templates,  [ tllimit=max,
+page_prop(templates,             templates,  [ tllimit=max ]).
+page_prop(templates(Namespaces), templates,  [ tllimit=max,
                                                 tlnamespaces=Props]) :-
   query_proplist(Namespaces, Props).
 
@@ -71,3 +91,24 @@ query_proplist([Prop|Rest], PropsAtom) :-
   format(atom(PropsAtom), '~w|~w', [Prop, PropTail]).
 query_proplist(Prop, Prop) :-
   nonvar(Prop).
+
+/* ------------------------------------------------------------------------- */
+
+info(title(Prj, NS, Title), page(loc(Prj, Id, NS, Title), Info)) :-
+  pages:page(loc(Prj, Id, NS, Title), Info).
+info(id(Prj, Id), page(loc(Prj, Id, NS, Title), Info)) :-
+  pages:page(loc(Prj, Id, NS, Title), Info).
+info(loc(Prj, Id, NS, Title), page(loc(Prj, Id, NS, Title), Info)) :-
+  pages:page(loc(Prj, Id, NS, Title), Info).
+
+/* ------------------------------------------------------------------------- */
+
+insert(Loc, _) :-
+  pages:page(Loc, _),
+  !.
+insert(Loc, Info) :-
+  assertz(pages:page(Loc, Info)).
+
+/* ------------------------------------------------------------------------- *
+ * END OF FILE                                                               *
+ * ------------------------------------------------------------------------- */

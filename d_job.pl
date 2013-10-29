@@ -21,7 +21,6 @@
 
 :- module(d_job, [loop/0, queue/4]).
 :- use_module(d_wiki).
-:- use_module(d_pagenet).
 
 /* ------------------------------------------------------------------------- */
 
@@ -76,14 +75,16 @@ execute(job(Prj, Task, Handler, Args)) :-
  * it's hard-coded.                                                          *
  * ------------------------------------------------------------------------- */
 
-job(Prj, _, Args, Data) :-
-  Once    =.. [ once, Prj | Args ],
+job(Prj, Handler, Args, Data) :-
+  Handle    =.. [ handle, Prj | Args ],
 
   /* Once is a DCG grammar. Consuming *all* data is required.
    * Hence the '[]'.
    */
 
-  call(Once, Data, []),
+  add_import_module(Handler, handle, start),
+  call(Handler:Handle, Data, []),
+  delete_import_module(Handler, handle),
   !.
 job(Prj, Handler, Args, _) :-
   writef('job:failed %w(%w) on %w\n', [Handler, Args, Prj]),
